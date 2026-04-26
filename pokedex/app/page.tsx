@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import { getPokemonCards } from "@/lib/pokeapi";
+import { PokemonGrid } from "@/components/pokemon-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -61,16 +61,10 @@ export default async function Home({ searchParams }: HomeProps) {
           Apply
         </button>
       </form>
-      <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-        {filteredPokemon.map((pokemon) => (
-          <article key={pokemon.name} className="border p-3">
-            <img src={pokemon.image} alt={pokemon.name} width="120" height="120" />
-            <p>ID No.: {pokemon.id}</p>
-            <p>Name: {pokemon.name}</p>
-            <p>Type: {pokemon.types.join(", ") || "Unknown"}</p>
-          </article>
-        ))}
-      </div>
+      <PokemonGrid
+        key={`${search}:${sort}:${filteredPokemon.length}`}
+        pokemon={filteredPokemon}
+      />
     </main>
   );
 }
