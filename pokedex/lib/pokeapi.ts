@@ -3,20 +3,26 @@ const POKEAPI_BASE_URL =
 const POKEMON_IMAGE_BASE_URL =
   process.env.POKEMON_IMAGE_BASE_URL ||
   "https://assets.pokemon.com/assets/cms2/img/pokedex/full";
+const POKEAPI_REVALIDATE_SECONDS = 60 * 60;
+
+type NamedResource = {
+  name: string;
+  url: string;
+};
 
 type PokemonListResponse = {
   count: number;
-  results: Array<{
-    name: string;
-    url: string;
-  }>;
+  results: NamedResource[];
 };
 
-type PokemonDetailResponse = {
-  id: number;
+type TypeListResponse = {
+  results: NamedResource[];
+};
+
+type TypeResponse = {
   name: string;
-  types: Array<{
-    type: {
+  pokemon: Array<{
+    pokemon: {
       name: string;
     };
   }>;
@@ -36,7 +42,9 @@ export type PokemonCardsResponse = {
 
 async function fetchFromPokeApi<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    cache: "no-store",
+    next: {
+      revalidate: POKEAPI_REVALIDATE_SECONDS,
+    },
   });
 
   if (!response.ok) {
@@ -46,26 +54,53 @@ async function fetchFromPokeApi<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function getPokemonIdFromUrl(url: string) {
+  const parts = url.split("/").filter(Boolean);
+  return Number(parts[parts.length - 1]);
+}
+
+function getPokemonImage(id: number) {
+  return `${POKEMON_IMAGE_BASE_URL}/${String(id).padStart(3, "0")}.png`;
+}
+
 export async function getPokemonCards(): Promise<PokemonCardsResponse> {
   const pokemonList = await fetchFromPokeApi<PokemonListResponse>(
     `${POKEAPI_BASE_URL}/pokemon?limit=100000&offset=0`
   );
 
-  const pokemon = await Promise.all(
-    pokemonList.results.map(async (item) => {
-      const details = await fetchFromPokeApi<PokemonDetailResponse>(item.url);
+  const pokemonByName: Record<string, PokemonCard> = {};
 
-      return {
-        id: details.id,
-        name: details.name,
-        types: details.types.map((entry) => entry.type.name),
-        image: `${POKEMON_IMAGE_BASE_URL}/${String(details.id).padStart(3, "0")}.png`,
-      };
-    })
+  for (const item of pokemonList.results) {
+    const id = getPokemonIdFromUrl(item.url);
+
+    pokemonByName[item.name] = {
+      id,
+      name: item.name,
+      types: [],
+      image: getPokemonImage(id),
+    };
+  }
+
+  const typeList = await fetchFromPokeApi<TypeListResponse>(
+    `${POKEAPI_BASE_URL}/type`
   );
+
+  const typeResponses = await Promise.all(
+    typeList.results.map((type) => fetchFromPokeApi<TypeResponse>(type.url))
+  );
+
+  for (const typeData of typeResponses) {
+    for (const item of typeData.pokemon) {
+      const pokemon = pokemonByName[item.pokemon.name];
+
+      if (pokemon) {
+        pokemon.types.push(typeData.name);
+      }
+    }
+  }
 
   return {
     count: pokemonList.count,
-    pokemon,
+    pokemon: Object.values(pokemonByName),
   };
 }
