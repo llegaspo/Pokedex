@@ -1,4 +1,8 @@
-const POKEAPI_BASE_URL = "https://pokeapi.co/api/v2";
+const POKEAPI_BASE_URL =
+  process.env.POKEAPI_BASE_URL || "https://pokeapi.co/api/v2";
+const POKEMON_IMAGE_BASE_URL =
+  process.env.POKEMON_IMAGE_BASE_URL ||
+  "https://assets.pokemon.com/assets/cms2/img/pokedex/full";
 
 type PokemonListResponse = {
   count: number;
@@ -22,6 +26,7 @@ export type PokemonCard = {
   id: number;
   name: string;
   types: string[];
+  image: string;
 };
 
 export type PokemonCardsResponse = {
@@ -54,6 +59,7 @@ export async function getPokemonCards(): Promise<PokemonCardsResponse> {
         id: details.id,
         name: details.name,
         types: details.types.map((entry) => entry.type.name),
+        image: `${POKEMON_IMAGE_BASE_URL}/${String(details.id).padStart(3, "0")}.png`,
       };
     })
   );

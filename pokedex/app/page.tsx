@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { getPokemonCards } from "@/lib/pokeapi";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ export default async function Home() {
       <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {payload.pokemon.map((pokemon) => (
           <article key={pokemon.name} className="border p-3">
+            <img src={pokemon.image} alt={pokemon.name} width="120" height="120" />
             <p>ID No.: {pokemon.id}</p>
             <p>Name: {pokemon.name}</p>
             <p>Type: {pokemon.types.join(", ") || "Unknown"}</p>
