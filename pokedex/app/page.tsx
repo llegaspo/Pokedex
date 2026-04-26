@@ -42,7 +42,7 @@ export default async function Home({ searchParams }: HomeProps) {
     });
 
   return (
-    <main>
+    <main className="min-h-screen">
       <h1>Pokemons</h1>
       <p>Total: {payload.count}</p>
       <form className="p-4">
@@ -51,13 +51,17 @@ export default async function Home({ searchParams }: HomeProps) {
           name="search"
           placeholder="Search by name"
           defaultValue={search}
-          className="border p-2"
+          className="rounded-md border p-2"
         />
-        <select name="sort" defaultValue={sort} className="ml-2 border p-2">
+        <select
+          name="sort"
+          defaultValue={sort}
+          className="ml-2 rounded-md border p-2"
+        >
           <option value="id">Sort by ID</option>
           <option value="name">Sort by Name</option>
         </select>
-        <button type="submit" className="ml-2 border px-3 py-2">
+        <button type="submit" className="ml-2 rounded-md border px-3 py-2">
           Apply
         </button>
       </form>
