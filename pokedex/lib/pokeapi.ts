@@ -1,19 +1,36 @@
 const POKEAPI_BASE_URL = "https://pokeapi.co/api/v2";
 
-export type NamedApiResource = {
-  name: string;
-  url: string;
-};
-
-export type PokemonListResponse = {
+type PokemonListResponse = {
   count: number;
-  next: string | null;
-  previous: string | null;
-  results: NamedApiResource[];
+  results: Array<{
+    name: string;
+    url: string;
+  }>;
 };
 
-async function fetchFromPokeApi<T>(path: string): Promise<T> {
-  const response = await fetch(`${POKEAPI_BASE_URL}${path}`, {
+type PokemonDetailResponse = {
+  id: number;
+  name: string;
+  types: Array<{
+    type: {
+      name: string;
+    };
+  }>;
+};
+
+export type PokemonCard = {
+  id: number;
+  name: string;
+  types: string[];
+};
+
+export type PokemonCardsResponse = {
+  count: number;
+  pokemon: PokemonCard[];
+};
+
+async function fetchFromPokeApi<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
     cache: "no-store",
   });
 
@@ -24,6 +41,25 @@ async function fetchFromPokeApi<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function getPokemonList(): Promise<PokemonListResponse> {
-  return fetchFromPokeApi<PokemonListResponse>("/pokemon?limit=100000&offset=0");
+export async function getPokemonCards(): Promise<PokemonCardsResponse> {
+  const pokemonList = await fetchFromPokeApi<PokemonListResponse>(
+    `${POKEAPI_BASE_URL}/pokemon?limit=100000&offset=0`
+  );
+
+  const pokemon = await Promise.all(
+    pokemonList.results.map(async (item) => {
+      const details = await fetchFromPokeApi<PokemonDetailResponse>(item.url);
+
+      return {
+        id: details.id,
+        name: details.name,
+        types: details.types.map((entry) => entry.type.name),
+      };
+    })
+  );
+
+  return {
+    count: pokemonList.count,
+    pokemon,
+  };
 }

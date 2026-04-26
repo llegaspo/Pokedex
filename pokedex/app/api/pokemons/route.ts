@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
-import { getPokemonList } from "@/lib/pokeapi";
+import { getPokemonCards } from "@/lib/pokeapi";
 
 export async function GET() {
   try {
-    const payload = await getPokemonList();
+    const payload = await getPokemonCards();
 
-    return NextResponse.json(payload, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
+    return NextResponse.json(payload);
   } catch {
     return NextResponse.json(
       {
-        error: "Failed to fetch Pokemon list.",
+        error: "Failed to fetch Pokemon data.",
       },
       {
         status: 500,
