@@ -40,6 +40,39 @@ export type PokemonCardsResponse = {
   pokemon: PokemonCard[];
 };
 
+type PokemonDetailResponse = {
+  id: number;
+  name: string;
+  height: number;
+  weight: number;
+  base_experience: number;
+  abilities: Array<{
+    ability: {
+      name: string;
+    };
+  }>;
+  stats: Array<{
+    base_stat: number;
+    stat: {
+      name: string;
+    };
+  }>;
+};
+
+export type PokemonDetails = {
+  id: number;
+  name: string;
+  image: string;
+  height: number;
+  weight: number;
+  baseExperience: number;
+  abilities: string[];
+  stats: Array<{
+    name: string;
+    value: number;
+  }>;
+};
+
 async function fetchFromPokeApi<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     next: {
@@ -102,5 +135,27 @@ export async function getPokemonCards(): Promise<PokemonCardsResponse> {
   return {
     count: pokemonList.count,
     pokemon: Object.values(pokemonByName),
+  };
+}
+
+export async function getPokemonDetails(
+  pokemonName: string
+): Promise<PokemonDetails> {
+  const details = await fetchFromPokeApi<PokemonDetailResponse>(
+    `${POKEAPI_BASE_URL}/pokemon/${pokemonName.toLowerCase()}`
+  );
+
+  return {
+    id: details.id,
+    name: details.name,
+    image: getPokemonImage(details.id),
+    height: details.height,
+    weight: details.weight,
+    baseExperience: details.base_experience,
+    abilities: details.abilities.map((item) => item.ability.name),
+    stats: details.stats.map((item) => ({
+      name: item.stat.name,
+      value: item.base_stat,
+    })),
   };
 }
