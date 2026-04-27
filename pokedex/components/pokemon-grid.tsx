@@ -98,6 +98,17 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
   }
 
   const visiblePokemon = pokemon.slice(0, visibleCount);
+  const pokemonById = [...pokemon].sort((a, b) => a.id - b.id);
+  const selectedPokemonIndex = pokemonById.findIndex(
+    (item) => item.name === selectedPokemonName
+  );
+  const previousPokemon = selectedPokemonIndex > 0
+    ? pokemonById[selectedPokemonIndex - 1]
+    : null;
+  const nextPokemon =
+    selectedPokemonIndex >= 0 && selectedPokemonIndex < pokemonById.length - 1
+      ? pokemonById[selectedPokemonIndex + 1]
+      : null;
 
   return (
     <>
@@ -135,35 +146,75 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
       </div>
       {(isLoadingDetails || selectedPokemon || detailsError) &&
       selectedPokemonName ? (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-lg border-2 border-black bg-white p-4">
-            <button type="button" className="mb-4 border px-3 py-1" onClick={closeModal}>
-              Close
-            </button>
-            {isLoadingDetails ? <p>Loading pokemon details...</p> : null}
-            {detailsError ? <p>{detailsError}</p> : null}
-            {selectedPokemon ? (
-              <div>
-                <h2>{selectedPokemon.name}</h2>
-                <img
-                  src={selectedPokemon.image}
-                  alt={selectedPokemon.name}
-                  width="180"
-                  height="180"
-                />
-                <p>ID No.: {selectedPokemon.id}</p>
-                <p>Height: {selectedPokemon.height}</p>
-                <p>Weight: {selectedPokemon.weight}</p>
-                <p>Base Experience: {selectedPokemon.baseExperience}</p>
-                <p>Abilities: {selectedPokemon.abilities.join(", ") || "Unknown"}</p>
-                <p>
-                  Stats:{" "}
-                  {selectedPokemon.stats
-                    .map((item) => `${item.name}: ${item.value}`)
-                    .join(", ")}
-                </p>
-              </div>
-            ) : null}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6">
+          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border-2 border-black bg-white p-6 shadow-lg sm:p-8">
+            <div className="mb-6 flex justify-end">
+              <button
+                type="button"
+                className="rounded-md border px-3 py-1"
+                onClick={closeModal}
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {isLoadingDetails ? <p>Loading pokemon details...</p> : null}
+              {detailsError ? <p>{detailsError}</p> : null}
+              {selectedPokemon ? (
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+                  <div className="flex justify-center sm:w-56 sm:flex-none">
+                    <img
+                      src={selectedPokemon.image}
+                      alt={selectedPokemon.name}
+                      width="220"
+                      height="220"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <h2 className="text-2xl font-semibold capitalize">
+                      {selectedPokemon.name}
+                    </h2>
+                    <p>ID No.: {selectedPokemon.id}</p>
+                    <p>Type: {selectedPokemon.types.join(", ") || "Unknown"}</p>
+                    <p>
+                      Weaknesses:{" "}
+                      {selectedPokemon.weaknesses.join(", ") || "None"}
+                    </p>
+                    <p>Height: {selectedPokemon.height}</p>
+                    <p>Weight: {selectedPokemon.weight}</p>
+                    <p>Base Experience: {selectedPokemon.baseExperience}</p>
+                    <p>
+                      Abilities:{" "}
+                      {selectedPokemon.abilities.join(", ") || "Unknown"}
+                    </p>
+                    <p>
+                      Stats:{" "}
+                      {selectedPokemon.stats
+                        .map((item) => `${item.name}: ${item.value}`)
+                        .join(", ")}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-6 flex justify-center gap-3 border-t pt-5">
+              <button
+                type="button"
+                className="rounded-md border px-4 py-2 disabled:opacity-50"
+                onClick={() => previousPokemon && handleCardClick(previousPokemon.name)}
+                disabled={!previousPokemon || isLoadingDetails}
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                className="rounded-md border px-4 py-2 disabled:opacity-50"
+                onClick={() => nextPokemon && handleCardClick(nextPokemon.name)}
+                disabled={!nextPokemon || isLoadingDetails}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
