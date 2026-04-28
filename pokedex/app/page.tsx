@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <h1 className="p-6 text-center text-4xl font-bold tracking-wide sm:text-5xl">
         POKEDEX
       </h1>
-      <form className="p-4">
+      <form className="sticky top-0 z-40 flex flex-wrap gap-2 p-4">
         <input
           type="text"
           name="search"
@@ -59,14 +59,14 @@ export default async function Home({ searchParams }: HomeProps) {
         <select
           name="sort"
           defaultValue={sort}
-          className="ml-2 rounded-md border border-black bg-white px-3 py-2 text-black outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+          className="rounded-md border border-black bg-white px-3 py-2 text-black outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
         >
           <option value="id">Sort by ID</option>
           <option value="name">Sort by Name</option>
         </select>
         <button
           type="submit"
-          className="ml-2 rounded-md border border-black bg-white px-3 py-2 text-black outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+          className="rounded-md border border-black bg-white px-3 py-2 text-black outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
         >
           Apply
         </button>
