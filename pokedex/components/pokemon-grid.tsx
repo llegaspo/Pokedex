@@ -6,6 +6,8 @@ import type { PokemonCard, PokemonDetails } from "@/lib/pokeapi";
 
 const BATCH_SIZE = 10;
 const DEFAULT_CARD_COLOR = "#f5f5f5";
+const GLOBAL_STAT_MAX = 255;
+const DEFAULT_STAT_BAR_COLOR = "#64748b";
 const TYPE_COLORS: Record<string, string> = {
   bug: "#d5ef8b",
   dark: "#c7beb2",
@@ -25,6 +27,14 @@ const TYPE_COLORS: Record<string, string> = {
   rock: "#c8b08a",
   steel: "#c7d1db",
   water: "#9fd3ff",
+};
+const STAT_BAR_COLORS: Record<string, string> = {
+  hp: "#22c55e",
+  attack: "#ef4444",
+  defense: "#3b82f6",
+  "special-attack": "#f97316",
+  "special-defense": "#8b5cf6",
+  speed: "#eab308",
 };
 
 function formatPokemonId(id: number) {
@@ -72,7 +82,11 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
     const observer = new IntersectionObserver((entries) => {
       const entry = entries[0];
 
-      if (entry?.isIntersecting) {
+      if (!entry) {
+        return;
+      }
+
+      if (entry.isIntersecting) {
         setVisibleCount((current) =>
           Math.min(current + BATCH_SIZE, pokemon.length)
         );
@@ -123,13 +137,23 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
   const selectedPokemonIndex = pokemonById.findIndex(
     (item) => item.name === selectedPokemonName
   );
-  const previousPokemon = selectedPokemonIndex > 0
-    ? pokemonById[selectedPokemonIndex - 1]
-    : null;
-  const nextPokemon =
-    selectedPokemonIndex >= 0 && selectedPokemonIndex < pokemonById.length - 1
-      ? pokemonById[selectedPokemonIndex + 1]
-      : null;
+  let previousPokemon: PokemonCard | null = null;
+  let nextPokemon: PokemonCard | null = null;
+
+  if (selectedPokemonIndex > 0) {
+    previousPokemon = pokemonById[selectedPokemonIndex - 1];
+  }
+
+  if (
+    selectedPokemonIndex >= 0 &&
+    selectedPokemonIndex < pokemonById.length - 1
+  ) {
+    nextPokemon = pokemonById[selectedPokemonIndex + 1];
+  }
+
+  const shouldShowModal =
+    (isLoadingDetails || Boolean(selectedPokemon) || Boolean(detailsError)) &&
+    Boolean(selectedPokemonName);
 
   return (
     <>
@@ -186,8 +210,7 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
           );
         })}
       </div>
-      {(isLoadingDetails || selectedPokemon || detailsError) &&
-      selectedPokemonName ? (
+      {shouldShowModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 sm:p-6">
           <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border-2 border-black bg-white p-6 shadow-lg sm:p-8">
             <div className="mb-6 flex justify-end">
@@ -286,11 +309,32 @@ export function PokemonGrid({ pokemon }: PokemonGridProps) {
                       </p>
                       <div className="space-y-2">
                         <p className="font-semibold">Stats</p>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {selectedPokemon.stats.map((item) => (
-                            <p key={item.name}>
-                              {formatPokemonText(item.name)}: {item.value}
-                            </p>
+                            <div
+                              key={item.name}
+                              className="flex items-center gap-3"
+                            >
+                              <span className="w-32 shrink-0 text-sm whitespace-nowrap">
+                                {formatPokemonText(item.name)}
+                              </span>
+                              <div className="w-56 shrink-0">
+                                <div className="h-2 w-full rounded-full bg-neutral-200">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      backgroundColor:
+                                        STAT_BAR_COLORS[item.name] ||
+                                        DEFAULT_STAT_BAR_COLOR,
+                                      width: `${(item.value / GLOBAL_STAT_MAX) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="w-10 shrink-0 text-right text-sm">
+                                {item.value}
+                              </span>
+                            </div>
                           ))}
                         </div>
                       </div>

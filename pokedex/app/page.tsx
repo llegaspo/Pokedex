@@ -31,17 +31,18 @@ export default async function Home({ searchParams }: HomeProps) {
     );
   }
 
-  const filteredPokemon = payload.pokemon
-    .filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sort === "name") {
-        return a.name.localeCompare(b.name);
-      }
+  const searchTerm = search.toLowerCase();
+  const filteredPokemon = payload.pokemon.filter((pokemon) =>
+    pokemon.name.toLowerCase().includes(searchTerm)
+  );
 
-      return a.id - b.id;
-    });
+  filteredPokemon.sort((a, b) => {
+    if (sort === "name") {
+      return a.name.localeCompare(b.name);
+    }
+
+    return a.id - b.id;
+  });
 
   return (
     <main className="min-h-screen">
